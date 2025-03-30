@@ -11,7 +11,6 @@ def document_processor():
 @pytest.fixture
 def sample_pdf(tmp_path):
     pdf_path = tmp_path / "test.pdf"
-    # Create a test PDF file
     return str(pdf_path)
 
 

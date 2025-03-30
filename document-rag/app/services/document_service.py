@@ -17,10 +17,8 @@ class DocumentService:
         )
 
     async def process_document(self, db: Session, title: str, content: str) -> Document:
-        # Create embeddings
         embeddings = self.embeddings.embed_documents([content])
 
-        # Create document
         document = Document(
             title=title,
             content=content,

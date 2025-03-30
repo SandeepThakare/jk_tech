@@ -19,8 +19,6 @@ def get_db():
     finally:
         db.close()
 
-# Vector Database (MongoDB)
-
 
 class DocumentStore:
     def __init__(self):

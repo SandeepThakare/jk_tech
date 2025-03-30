@@ -53,7 +53,7 @@ const Document = sequelize.define('Document', {
     defaultValue: DataTypes.NOW
   }
 }, {
-  tableName: 'Documents' // Explicitly set table name
+  tableName: 'Documents'
 });
 
 Document.belongsTo(User, { as: 'uploadedBy', foreignKey: 'uploadedByUserId' });

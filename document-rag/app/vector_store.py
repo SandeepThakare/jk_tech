@@ -20,7 +20,6 @@ class VectorStore:
             dimension = len(embeddings[0])
             self.index = faiss.IndexFlatL2(dimension)
 
-        # Store the chunks and their embeddings
         start_idx = len(self.chunks)
         self.chunks.extend([{
             'document_id': document_id,
@@ -28,10 +27,8 @@ class VectorStore:
             'index': start_idx + i
         } for i, chunk in enumerate(chunks)])
 
-        # Add embeddings to FAISS index
         self.index.add(embeddings_array)
 
-        # Save the index and chunks
         self._save_state(document_id)
 
     def search_similar(self, document_id: int, query_embedding: List[float], top_k: int = 3) -> List[Dict]:
@@ -40,13 +37,10 @@ class VectorStore:
             if self.index is None:
                 return []
 
-        # Convert query embedding to numpy array
         query_array = np.array([query_embedding]).astype('float32')
 
-        # Search the index
         distances, indices = self.index.search(query_array, top_k)
 
-        # Get the corresponding chunks
         results = []
         for idx, distance in zip(indices[0], distances[0]):
             if idx < len(self.chunks):
@@ -54,14 +48,12 @@ class VectorStore:
                 if chunk['document_id'] == document_id:
                     results.append({
                         'text': chunk['text'],
-                        # Convert distance to similarity score
                         'similarity': float(1 / (1 + distance))
                     })
 
         return results
 
     def _save_state(self, document_id: int):
-        # Save FAISS index
         index_path = os.path.join(
             self.storage_dir, f"index_{document_id}.faiss")
         faiss.write_index(self.index, index_path)

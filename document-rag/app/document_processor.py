@@ -8,8 +8,8 @@ class DocumentProcessor:
     def __init__(self):
         self.tokenizer = AutoTokenizer.from_pretrained(
             'sentence-transformers/all-MiniLM-L6-v2')
-        self.chunk_size = 256  # Adjust based on your needs
-        self.overlap = 64      # Adjust based on your needs
+        self.chunk_size = 256
+        self.overlap = 64
 
     def extract_text(self, file_path: str, mime_type: str) -> str:
         if mime_type == 'application/pdf':
@@ -38,11 +38,9 @@ class DocumentProcessor:
             return file.read()
 
     def chunk_text(self, text: str) -> List[str]:
-        # Tokenize the text
         tokens = self.tokenizer.tokenize(text)
         chunks = []
 
-        # Create chunks with overlap
         for i in range(0, len(tokens), self.chunk_size - self.overlap):
             chunk_tokens = tokens[i:i + self.chunk_size]
             chunk_text = self.tokenizer.convert_tokens_to_string(chunk_tokens)

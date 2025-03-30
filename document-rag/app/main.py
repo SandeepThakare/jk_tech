@@ -54,10 +54,8 @@ class ProcessDocumentRequest(BaseModel):
 @app.post("/process")
 async def process_document(request: ProcessDocumentRequest):
     try:
-        # Create temp directory if it doesn't exist
         os.makedirs("temp", exist_ok=True)
 
-        # Download file from S3
         local_path = f"temp/{request.s3Key.split('/')[-1]}"
         s3.download_file(
             os.getenv('AWS_BUCKET_NAME'),
@@ -65,21 +63,17 @@ async def process_document(request: ProcessDocumentRequest):
             local_path
         )
 
-        # Extract text based on mime type
         text = document_processor.extract_text(local_path, request.mimeType)
 
-        # Create embeddings
         chunks = document_processor.chunk_text(text)
         embeddings = embedding_service.create_embeddings(chunks)
 
-        # Store in vector database
         vector_store.store_embeddings(
             document_id=request.documentId,
             chunks=chunks,
             embeddings=embeddings
         )
 
-        # Cleanup
         os.remove(local_path)
 
         return {"status": "success"}
@@ -97,10 +91,8 @@ class QueryRequest(BaseModel):
 @app.post("/query")
 async def query_document(request: QueryRequest):
     try:
-        # Create query embedding
         query_embedding = embedding_service.create_embedding(request.query)
 
-        # Search similar chunks
         results = vector_store.search_similar(
             document_id=request.documentId,
             query_embedding=query_embedding,

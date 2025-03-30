@@ -8,8 +8,6 @@ class IngestionService {
       documentId: document.id,
       status: IngestionStatus.PENDING
     });
-
-    // Trigger Python backend ingestion
     this.processIngestion(job).catch(console.error);
 
     return job;
@@ -20,7 +18,6 @@ class IngestionService {
       job.status = IngestionStatus.PROCESSING;
       await job.save();
 
-      // Call Python backend
       await axios.post(`${config.pythonService.url}/documents/`, {
         title: job.document.title,
         file: job.document.fileName

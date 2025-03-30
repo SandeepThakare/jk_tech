@@ -4,7 +4,7 @@ export const documentService = {
   async uploadDocument(formData) {
     const response = await api.post("/documents", formData, {
       headers: {
-        'Content-Type': 'multipart/form-data'  // Important for file uploads
+        'Content-Type': 'multipart/form-data'
       }
     });
     return response.data;
