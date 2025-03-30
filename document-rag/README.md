@@ -128,3 +128,45 @@ npm test
 - Development logs in console
 - Production logs in files
 - Error tracking configured
+
+# Document RAG API
+
+## Azure OpenAI Setup
+
+1. **Create Azure OpenAI Resource**
+
+   - Go to Azure Portal
+   - Create a new Azure OpenAI resource
+   - Note down the endpoint and API key
+
+2. **Create Model Deployments**
+
+   a. Text Embeddings Model:
+
+   - Model: text-embedding-ada-002
+   - Suggested deployment name: text-embedding-ada-002-deployment
+   - This is used for creating document embeddings and similarity search
+
+   b. GPT Model:
+
+   - Model: gpt-35-turbo or gpt-4
+   - Suggested deployment name: gpt-35-turbo-deployment
+   - This is used for question answering
+
+3. **Configure Environment Variables**
+   ```env
+   AZURE_OPENAI_API_KEY=your-api-key
+   AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com
+   AZURE_OPENAI_API_VERSION=2023-05-15
+   AZURE_OPENAI_DEPLOYMENT_NAME=gpt-35-turbo-deployment
+   AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME=text-embedding-ada-002-deployment
+   ```
+
+## Usage
+
+The API uses these deployments for:
+
+- Document processing: Uses the embedding model to create vector representations of text
+- Question answering: Uses the GPT model to generate answers based on relevant document chunks
+
+Make sure both deployments are active and properly configured before running the application.

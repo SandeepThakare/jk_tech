@@ -15,7 +15,7 @@ class DocumentCreate(DocumentBase):
 class Document(DocumentBase):
     id: int
     embedding: Optional[List[float]]
-    metadata: Optional[Dict]
+    doc_metadata: Optional[Dict] = None
     created_at: datetime
     updated_at: Optional[datetime]
 

@@ -1,23 +1,29 @@
 from fastapi import FastAPI, Depends, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 import asyncio
+import boto3
+import os
 
-from .database import get_db, engine, Base
+from .database import get_db, engine, Base, DocumentStore
 from .services.document_service import DocumentService
 from .services.qa_service import QAService
 from .schemas import document_schemas
+from .models.documents import Document
+from .config import settings
+from .document_processor import DocumentProcessor
+from .embeddings import EmbeddingService
+from pydantic import BaseModel
+from .vector_store import VectorStore
 
-# Create database tables
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Document QA System")
 
-# Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[settings.FRONTEND_URL],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -25,6 +31,88 @@ app.add_middleware(
 
 document_service = DocumentService()
 qa_service = QAService()
+
+# Initialize services
+s3 = boto3.client('s3',
+                  aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
+                  aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
+                  region_name=os.getenv('AWS_REGION')
+                  )
+
+document_processor = DocumentProcessor()
+embedding_service = EmbeddingService()
+vector_store = VectorStore()
+
+
+class ProcessDocumentRequest(BaseModel):
+    documentId: int
+    s3Key: str
+    s3Url: str
+    mimeType: str
+
+
+@app.post("/process")
+async def process_document(request: ProcessDocumentRequest):
+    try:
+        # Create temp directory if it doesn't exist
+        os.makedirs("temp", exist_ok=True)
+
+        # Download file from S3
+        local_path = f"temp/{request.s3Key.split('/')[-1]}"
+        s3.download_file(
+            os.getenv('AWS_BUCKET_NAME'),
+            request.s3Key,
+            local_path
+        )
+
+        # Extract text based on mime type
+        text = document_processor.extract_text(local_path, request.mimeType)
+
+        # Create embeddings
+        chunks = document_processor.chunk_text(text)
+        embeddings = embedding_service.create_embeddings(chunks)
+
+        # Store in vector database
+        vector_store.store_embeddings(
+            document_id=request.documentId,
+            chunks=chunks,
+            embeddings=embeddings
+        )
+
+        # Cleanup
+        os.remove(local_path)
+
+        return {"status": "success"}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+class QueryRequest(BaseModel):
+    documentId: int
+    query: str
+    topK: Optional[int] = 3
+
+
+@app.post("/query")
+async def query_document(request: QueryRequest):
+    try:
+        # Create query embedding
+        query_embedding = embedding_service.create_embedding(request.query)
+
+        # Search similar chunks
+        results = vector_store.search_similar(
+            document_id=request.documentId,
+            query_embedding=query_embedding,
+            top_k=request.topK
+        )
+
+        return {
+            "results": results
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post("/documents/", response_model=document_schemas.Document)

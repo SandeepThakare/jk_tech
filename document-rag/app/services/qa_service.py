@@ -1,6 +1,6 @@
 from langchain.llms import AzureOpenAI
 from langchain.chains import RetrievalQAWithSourcesChain
-from langchain.embeddings import AzureOpenAIEmbeddings
+from langchain_community.embeddings import AzureOpenAIEmbeddings
 from sqlalchemy.orm import Session
 from typing import List, Dict
 from .document_service import DocumentService
@@ -17,19 +17,19 @@ class QAService:
             api_version=settings.AZURE_OPENAI_API_VERSION
         )
         self.embeddings = AzureOpenAIEmbeddings(
-            azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
-            azure_deployment=settings.AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME,
             api_key=settings.AZURE_OPENAI_API_KEY,
-            api_version=settings.AZURE_OPENAI_API_VERSION
+            azure_deployment=settings.AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME,
+            azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
+            api_version=settings.AZURE_OPENAI_API_VERSION,
+            chunk_size=1,
+            model="text-embedding-ada-002"
         )
         self.document_service = DocumentService()
 
     async def get_answer(self, db: Session, question: str,
                          document_ids: List[int] = None) -> Dict:
-        # Generate question embedding
         question_embedding = await self.embeddings.aembed_query(question)
 
-        # Find relevant documents
         similar_docs = self.document_service.find_similar_chunks(
             db, question_embedding, document_ids
         )
@@ -40,10 +40,8 @@ class QAService:
                 "source_documents": []
             }
 
-        # Prepare context from similar documents
         context = "\n\n".join([doc[1].content for doc in similar_docs])
 
-        # Generate answer using OpenAI
         prompt = f"""
         Context: {context}
         

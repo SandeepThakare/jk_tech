@@ -11,6 +11,6 @@ class Document(Base):
     title = Column(String, index=True)
     content = Column(Text)
     embedding = Column(ARRAY(Float))
-    metadata = Column(JSON)
+    doc_metadata = Column(JSON)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
