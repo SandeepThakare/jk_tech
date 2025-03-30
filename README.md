@@ -1,107 +1,118 @@
 # Document QA System
 
-This project consists of multiple applications that work together:
+A complete document management and question-answering system using React, Node.js, and Python.
 
-## Port Configuration
+## Architecture
 
-- Frontend (React): Running on `http://localhost:3000`
-- Node.js Auth Backend: Running on `http://localhost:5000`
-- Document RAG API (Python): Running on `http://localhost:8000`
-- Database: PostgreSQL on port `5432`
+The system consists of three main components:
 
-## Starting the Applications
+1. **React Frontend**: User interface for document management and QA
+2. **Node.js Backend**: Handles document storage and user management
+3. **Python RAG Service**: Processes documents and provides question-answering capabilities
 
-1. **Start the Document RAG API**
+## Quick Start
 
-   ```bash
-   cd document-rag
-   python -m venv venv
-   source venv/bin/activate  # On Windows: .\venv\Scripts\activate
-   pip install -r requirements.txt
-   python run.py
-   ```
+### Prerequisites
 
-   The API will be available at `http://localhost:8000`
+- Docker and Docker Compose
+- Git
 
-2. **Start the Node.js Backend**
+### Setup
 
-   ```bash
-   cd nodejs-backend
-   npm install
-   npm run dev
-   ```
+1. Clone the repository:
 
-   The authentication service will be available at `http://localhost:5000`
+```bash
+git clone https://github.com/yourusername/document-qa.git
+cd document-qa
+```
 
-3. **Start the Frontend**
+2. Set up environment variables:
 
-   ```bash
-   cd frontend
-   npm install
-   npm start
-   ```
+```bash
+cp .env.example .env
+# Edit .env with your settings
+```
 
-   The frontend will be available at `http://localhost:3000`
+3. Start the services:
 
-4. **Database Setup**
-   - Ensure PostgreSQL is running on port 5432
-   - Create a database named 'doc_qa_db'
-   ```bash
-   createdb doc_qa_db
-   ```
+```bash
+docker-compose up -d
+```
 
-## Environment Setup
+The services will be available at:
 
-1. **Document RAG API**
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:5000
+- RAG Service: http://localhost:8000
 
-   - Copy `document-rag/.env.example` to `document-rag/.env`
-   - Update the values with your Azure OpenAI credentials
+## Development
 
-2. **Node.js Backend**
+### Frontend (React)
 
-   - Copy `nodejs-backend/.env.example` to `nodejs-backend/.env`
-   - Update the database and JWT configurations
+```bash
+cd react-frontend
+npm install
+npm run dev
+```
 
-3. **Frontend**
-   - Copy `.env.example` to `.env`
-   - Update the API URLs if needed
+### Backend (Node.js)
 
-## API Documentation
+```bash
+cd nodejs-backend
+npm install
+npm run dev
+```
 
-- Document RAG API: `http://localhost:8000/docs`
-- Node.js Auth API: `http://localhost:5000/api-docs`
+### RAG Service (Python)
 
-## Common Issues
+```bash
+cd document-rag
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements/dev.txt
+uvicorn app.main:app --reload
+```
 
-1. **Port Conflicts**
+## Testing
 
-   - Frontend (3000): Set different port in frontend/.env
-   - Node.js Backend (5000): Set different port in nodejs-backend/.env
-   - Document RAG API (8000): Set different port in document-rag/.env
-   - Database (5432): Set different port in database configuration
+Each component has its own test suite:
 
-2. **CORS Issues**
+```bash
+# Frontend tests
+cd react-frontend
+npm test
 
-   - Ensure FRONTEND_URL in both backend .env files matches your frontend's actual URL
-   - Check that all services are running on their expected ports
+# Backend tests
+cd nodejs-backend
+npm test
 
-3. **Database Connection**
-   - Make sure PostgreSQL is running
-   - Check the database configurations in your .env files
-   - Verify database credentials and permissions
+# RAG service tests
+cd document-rag
+pytest
+```
 
-## Development Tools
+## Deployment
 
-- **Recommended VS Code Extensions**
-  - ESLint
-  - Prettier
-  - GitLens
-  - PostgreSQL
+1. Configure environment variables for production
+2. Build and start services:
 
-## Support
+```bash
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+```
 
-For additional support or questions, please:
+## Documentation
 
-- Create an issue in the repository
-- Contact the development team
-- Check the documentation in the `docs` folder
+- Frontend: [react-frontend/README.md](react-frontend/README.md)
+- Backend: [nodejs-backend/README.md](nodejs-backend/README.md)
+- RAG Service: [document-rag/README.md](document-rag/README.md)
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Submit a pull request
+
+## License
+
+MIT License

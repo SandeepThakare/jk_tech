@@ -1,172 +1,119 @@
-# Backend Application Setup
+# Document RAG System
 
-This is the backend API service built with Node.js and Express.
+A Retrieval-Augmented Generation (RAG) system for document processing and querying using FastAPI and Azure OpenAI.
 
-## Setup Instructions
+## Architecture
+
+The system follows Clean Architecture principles with the following layers:
+
+- Presentation Layer (FastAPI endpoints)
+- Service Layer (Business logic)
+- Data Layer (Vector store and database)
+
+### Key Components
+
+- `DocumentProcessor`: Handles document text extraction and chunking
+- `EmbeddingService`: Manages document embeddings using Azure OpenAI
+- `VectorStore`: Implements FAISS-based vector similarity search
+- `DocumentService`: Orchestrates document processing workflow
+
+## Development Setup
 
 ### Prerequisites
 
-- Node.js (v16.0.0 or higher)
-- npm (Node Package Manager)
-- MongoDB (v4.4 or higher)
-- Git
+- Python 3.10+
+- PostgreSQL
+- Azure OpenAI account
 
-### Installation
+### Local Development
 
-1. **Navigate to Backend Directory**
-
-   ```bash
-   cd backend
-   ```
-
-2. **Install Dependencies**
-
-   ```bash
-   npm install
-   ```
-
-3. **Environment Setup**
-
-   - Create a `.env` file in the backend directory
-   - Add the following configurations:
-     ```
-     PORT=3000
-     MONGODB_URI=mongodb://localhost:27017/your-database-name
-     JWT_SECRET=your-secret-key
-     NODE_ENV=development
-     ```
-
-4. **Database Setup**
-
-   - Start MongoDB service
-   - The application will create necessary collections automatically
-
-5. **Start Server**
-   ```bash
-   npm run dev
-   ```
-   The server will run on `http://localhost:3000`
-
-### Available Scripts
-
-- `npm run dev` - Runs the server in development mode
-- `npm start` - Runs the server in production mode
-- `npm test` - Runs the test suite
-- `npm run lint` - Runs ESLint
-- `npm run format` - Formats code using Prettier
-
-### Project Structure
-
-```
-backend/
-├── src/
-│   ├── config/
-│   ├── controllers/
-│   ├── middleware/
-│   ├── models/
-│   ├── routes/
-│   ├── services/
-│   ├── utils/
-│   └── app.js
-├── tests/
-├── package.json
-└── README.md
-```
-
-### API Documentation
-
-- Swagger documentation available at `/api-docs`
-- API endpoints follow RESTful conventions
-- All protected routes require JWT authentication
-
-### Database Schema
-
-The MongoDB collections include:
-
-- Users
-- [Other collections...]
-
-### Error Handling
-
-- All errors follow a standard format
-- HTTP status codes are properly implemented
-- Error logging is configured
-
-### Testing
+1. Create a virtual environment:
 
 ```bash
-npm test
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
-- Unit tests using Jest
-- Integration tests for API endpoints
-- Maintain minimum 80% coverage
+2. Install dependencies:
 
-### Production Deployment
+```bash
+pip install -r requirements/dev.txt
+```
 
-1. Build the application:
+3. Set up environment variables:
 
-   ```bash
-   npm run build
-   ```
+```bash
+cp .env.example .env
+# Edit .env with your settings
+```
 
-2. Start production server:
-   ```bash
-   npm start
-   ```
+4. Run database migrations:
 
-### Security Measures
+```bash
+alembic upgrade head
+```
 
-- JWT authentication
-- Request rate limiting
-- Input validation
-- XSS protection
-- CORS configuration
+5. Start the development server:
 
-### Logging
+```bash
+uvicorn app.main:app --reload
+```
 
-- Development logs in console
-- Production logs in files
-- Error tracking configured
+### Running Tests
 
-# Document RAG API
+```bash
+pytest tests/
+```
 
-## Azure OpenAI Setup
+## Production Deployment
 
-1. **Create Azure OpenAI Resource**
+### Using Docker
 
-   - Go to Azure Portal
-   - Create a new Azure OpenAI resource
-   - Note down the endpoint and API key
+1. Build the image:
 
-2. **Create Model Deployments**
+```bash
+docker build -t document-rag .
+```
 
-   a. Text Embeddings Model:
+2. Run with Docker Compose:
 
-   - Model: text-embedding-ada-002
-   - Suggested deployment name: text-embedding-ada-002-deployment
-   - This is used for creating document embeddings and similarity search
+```bash
+docker-compose up -d
+```
 
-   b. GPT Model:
+### Manual Deployment
 
-   - Model: gpt-35-turbo or gpt-4
-   - Suggested deployment name: gpt-35-turbo-deployment
-   - This is used for question answering
+1. Install production dependencies:
 
-3. **Configure Environment Variables**
-   ```env
-   AZURE_OPENAI_API_KEY=your-api-key
-   AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com
-   AZURE_OPENAI_API_VERSION=2023-05-15
-   AZURE_OPENAI_DEPLOYMENT_NAME=gpt-35-turbo-deployment
-   AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME=text-embedding-ada-002-deployment
-   ```
+```bash
+pip install -r requirements/prod.txt
+```
 
-## Usage
+2. Set environment variables
+3. Run database migrations
+4. Start with gunicorn:
 
-The API uses these deployments for:
+```bash
+gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker
+```
 
-- Document processing: Uses the embedding model to create vector representations of text
-- Question answering: Uses the GPT model to generate answers based on relevant document chunks
+## API Documentation
 
-Make sure both deployments are active and properly configured before running the application.
+API documentation is available at `/docs` when the server is running.
+
+## Design Decisions
+
+1. **FAISS for Vector Search**: Chosen for its efficiency and performance in similarity search
+2. **Azure OpenAI**: Used for reliable embedding generation
+3. **Clean Architecture**: Ensures separation of concerns and maintainability
+
+## Contributing
+
+1. Create a feature branch
+2. Make changes
+3. Write tests
+4. Submit a pull request
+
+## License
+
+MIT License

@@ -1,0 +1,63 @@
+version: "3.8"
+
+services:
+  frontend:
+    build:
+      context: ./react-frontend
+      args:
+        - VITE_API_URL=${API_URL}
+        - VITE_RAG_API_URL=${RAG_API_URL}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+      - rag-service
+
+  backend:
+    build: ./nodejs-backend
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./nodejs-backend/.env
+    depends_on:
+      - mongodb
+      - postgres
+    volumes:
+      - uploaded_files:/app/uploads
+
+  rag-service:
+    build: ./document-rag
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./document-rag/.env
+    depends_on:
+      - postgres
+    volumes:
+      - ./document-rag/vector_store:/app/vector_store
+
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USER}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
+
+  postgres:
+    image: postgres:14
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+
+volumes:
+  mongodb_data:
+  postgres_data:
+  uploaded_files:
